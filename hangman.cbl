@@ -29,9 +29,9 @@
           05 WS-SEED                  PIC 9(4)  VALUE 0.
           05 WS-RAND-ID               PIC 9(2).
        01 WS-MAIN.
+          05 I                        PIC 9(2)  VALUE 1.
           05 WS-ALPHABET              PIC A(26) VALUE
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
-          05 I                        PIC 9(2)  VALUE 1.
           05 WS-TARGET-WORD           PIC A(15).
           05 WS-MARKED-WORD           PIC A(15).
           05 WS-LIVES                 PIC 9     VALUE 6.
@@ -39,23 +39,25 @@
           05 WS-TESTED                PIC A(26).
           05 WS-COUNT                 PIC 9(2)  VALUE 0.
           05 WS-COUNT-B               PIC 9(2)  VALUE 0.
+       01 WS-INPUT-STATUS             PIC A     VALUE 'V'.
+          88 INPUT-VALID                        VALUE 'V'.
+          88 INPUT-ALREADY-TESTED               VALUE 'T'.
+          88 INPUT-NOT-LETTER                   VALUE 'L'.
        01 WS-GAME-STATUS              PIC A     VALUE 'P'.
-          88 PLAYING                            VALUE 'P'.
-          88 LOST                               VALUE 'L'.
-          88 WON                                VALUE 'W'.
+          88 GAME-PLAYING                       VALUE 'P'.
+          88 GAME-LOST                          VALUE 'L'.
+          88 GAME-WON                           VALUE 'W'.
        PROCEDURE DIVISION.
        MAIN-PROCEDURE.
            PERFORM GENERATE-TARGET-WORD.
-           PERFORM UNTIL NOT PLAYING 
+           PERFORM UNTIL NOT GAME-PLAYING 
                    DISPLAY "--------------------"
                    DISPLAY "Mot à deviner : " WS-MARKED-WORD
                    DISPLAY "Tu as " WS-LIVES " vies."
                    DISPLAY "Lettres déjà testées : " WS-TESTED 
-                   DISPLAY "Entre la lettre à tester :"
-                   ACCEPT WS-USER-INPUT
-                   PERFORM VALIDATE-INPUT
-                   PERFORM CHECK-INPUT
-                   PERFORM CHECK-STATUS
+                   PERFORM GET-USER-INPUT
+                   PERFORM HANDLE-INPUT
+                   PERFORM UPDATE-GAME-STATUS
            END-PERFORM.
            STOP RUN.
        GENERATE-TARGET-WORD.
@@ -77,38 +79,40 @@
            MOVE WS-MARKED-WORD TO WS-TARGET-WORD.
            INSPECT WS-MARKED-WORD
               REPLACING CHARACTERS BY "*" BEFORE SPACE.
-       VALIDATE-INPUT.
+       UPDATE-INPUT-STATUS.
+           SET INPUT-VALID TO TRUE.
            MOVE FUNCTION UPPER-CASE(WS-USER-INPUT) TO WS-USER-INPUT.
            MOVE 0 TO WS-COUNT.
            INSPECT WS-ALPHABET TALLYING WS-COUNT FOR ALL WS-USER-INPUT.
            IF WS-COUNT = 0
-              DISPLAY WS-USER-INPUT " n'est pas dans l'alphabet"
+              SET INPUT-NOT-LETTER TO TRUE
            END-IF.
-           MOVE 0 TO WS-COUNT-B.
-           INSPECT WS-TESTED TALLYING WS-COUNT-B FOR ALL WS-USER-INPUT.
+           MOVE 0 TO WS-COUNT.
+           INSPECT WS-TESTED TALLYING WS-COUNT FOR ALL WS-USER-INPUT.
            IF WS-COUNT > 0
-              DISPLAY WS-USER-INPUT " a déjà été testé"
+              SET INPUT-ALREADY-TESTED TO TRUE
            END-IF.
-           PERFORM UNTIL WS-COUNT > 0 AND WS-COUNT-B = 0
+       GET-USER-INPUT.
+           DISPLAY "Entre la lettre à tester :".
+           ACCEPT WS-USER-INPUT.
+           PERFORM UPDATE-INPUT-STATUS.
+           PERFORM UNTIL INPUT-VALID
+                   IF INPUT-NOT-LETTER 
+                      DISPLAY "ERREUR : "
+                              WS-USER-INPUT
+                              " n'est pas dans l'alphabet."
+                   END-IF
+                   IF INPUT-ALREADY-TESTED 
+                      DISPLAY "ERREUR : "
+                              WS-USER-INPUT
+                              " a déjà été testé."
+                   END-IF 
                    MOVE " " TO WS-USER-INPUT
-                   DISPLAY "Recommence :" 
+                   DISPLAY "Recommence :"
                    ACCEPT WS-USER-INPUT
-                   MOVE FUNCTION UPPER-CASE(WS-USER-INPUT)
-                      TO WS-USER-INPUT
-                   MOVE 0 TO WS-COUNT
-                   INSPECT WS-ALPHABET TALLYING WS-COUNT
-                      FOR ALL WS-USER-INPUT
-                   IF WS-COUNT = 0
-                      DISPLAY WS-USER-INPUT " n'est pas dans l'alphabet"
-                   END-IF
-                   MOVE 0 TO WS-COUNT-B
-                   INSPECT WS-TESTED TALLYING WS-COUNT-B
-                      FOR ALL WS-USER-INPUT
-                   IF WS-COUNT > 0
-                      DISPLAY WS-USER-INPUT " a déjà été testé"
-                   END-IF
+                   PERFORM UPDATE-INPUT-STATUS
            END-PERFORM.
-       CHECK-INPUT.
+       HANDLE-INPUT.
            INSPECT WS-TESTED
               REPLACING FIRST SPACE BY WS-USER-INPUT
            MOVE 0 TO WS-COUNT.
@@ -128,16 +132,16 @@
                    END-IF
                    ADD 1 TO I
            END-PERFORM.
-       CHECK-STATUS.
+       UPDATE-GAME-STATUS.
            MOVE 0 TO WS-COUNT.
            INSPECT WS-MARKED-WORD TALLYING WS-COUNT FOR ALL "*".
            IF WS-COUNT = 0
-              SET WON TO TRUE
+              SET GAME-WON TO TRUE
               DISPLAY "--------------------"
               DISPLAY "Bravo ! Tu as deviné le mot " WS-MARKED-WORD
            END-IF.
            IF WS-LIVES = 0
-              SET LOST TO TRUE
+              SET GAME-LOST TO TRUE
               DISPLAY "--------------------"
               DISPLAY "Dommage... Le mot était " WS-TARGET-WORD 
            END-IF.
