@@ -36,7 +36,7 @@
           05 WS-MARKED-WORD           PIC A(15).
           05 WS-LIVES                 PIC 9     VALUE 6.
           05 WS-USER-INPUT            PIC A.
-          05 WS-TESTED                PIC A(26).
+          05 WS-TESTED-LETTERS        PIC A(26).
           05 WS-COUNT                 PIC 9(2)  VALUE 0.
           05 WS-COUNT-B               PIC 9(2)  VALUE 0.
        01 WS-INPUT-STATUS             PIC A     VALUE 'V'.
@@ -54,7 +54,7 @@
                    DISPLAY "--------------------"
                    DISPLAY "Mot à deviner : " WS-MARKED-WORD
                    DISPLAY "Tu as " WS-LIVES " vies."
-                   DISPLAY "Lettres déjà testées : " WS-TESTED 
+                   DISPLAY "Lettres déjà testées : " WS-TESTED-LETTERS 
                    PERFORM GET-USER-INPUT
                    PERFORM HANDLE-INPUT
                    PERFORM UPDATE-GAME-STATUS
@@ -88,7 +88,8 @@
               SET INPUT-NOT-LETTER TO TRUE
            END-IF.
            MOVE 0 TO WS-COUNT.
-           INSPECT WS-TESTED TALLYING WS-COUNT FOR ALL WS-USER-INPUT.
+           INSPECT WS-TESTED-LETTERS TALLYING WS-COUNT
+              FOR ALL WS-USER-INPUT.
            IF WS-COUNT > 0
               SET INPUT-ALREADY-TESTED TO TRUE
            END-IF.
@@ -113,7 +114,7 @@
                    PERFORM UPDATE-INPUT-STATUS
            END-PERFORM.
        HANDLE-INPUT.
-           INSPECT WS-TESTED
+           INSPECT WS-TESTED-LETTERS
               REPLACING FIRST SPACE BY WS-USER-INPUT
            MOVE 0 TO WS-COUNT.
            INSPECT WS-TARGET-WORD TALLYING WS-COUNT
@@ -122,9 +123,9 @@
               DISPLAY WS-USER-INPUT " n'est pas dans le mot."
               SUBTRACT 1 FROM WS-LIVES
            ELSE
-              PERFORM REPLACE-CHAR
+              PERFORM UNCOVER-GUESS
            END-IF.
-       REPLACE-CHAR.
+       UNCOVER-GUESS.
            MOVE 1 TO I.
            PERFORM 15 TIMES
                    IF WS-TARGET-WORD(I:1) = WS-USER-INPUT 
