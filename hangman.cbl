@@ -54,7 +54,8 @@
                    DISPLAY "--------------------"
                    DISPLAY "Mot à deviner : " WS-MARKED-WORD
                    DISPLAY "Tu as " WS-LIVES " vies."
-                   DISPLAY "Lettres déjà testées : " WS-TESTED-LETTERS 
+                   DISPLAY "Lettres déjà testées : "
+                           WS-TESTED-LETTERS
                    PERFORM GET-USER-INPUT
                    PERFORM HANDLE-INPUT
                    PERFORM UPDATE-GAME-STATUS
@@ -106,7 +107,7 @@
                    IF INPUT-ALREADY-TESTED 
                       DISPLAY "ERREUR : "
                               WS-USER-INPUT
-                              " a déjà été testé."
+                              " a déjà été testée."
                    END-IF 
                    MOVE " " TO WS-USER-INPUT
                    DISPLAY "Recommence :"
