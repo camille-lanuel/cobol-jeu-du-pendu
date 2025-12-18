@@ -41,7 +41,7 @@
           88 WON                                VALUE 'W'.
        PROCEDURE DIVISION.
        MAIN-PROCEDURE.
-           PERFORM GENERATE-WORD-TO-GUESS.
+           PERFORM GENERATE-TARGET-WORD.
            PERFORM UNTIL NOT PLAYING 
                    DISPLAY "Mot à deviner : " WS-MARKED-WORD
                    DISPLAY "Entre la lettre à tester :"
@@ -52,7 +52,7 @@
                    DISPLAY "--------------------"
            END-PERFORM.
            STOP RUN.
-       GENERATE-WORD-TO-GUESS.
+       GENERATE-TARGET-WORD.
            OPEN INPUT WORDS-FILE.
            PERFORM UNTIL WS-DICT-SIZE = 100
                    READ WORDS-FILE INTO WS-DICT-WORD(WS-DICT-SIZE + 1)
