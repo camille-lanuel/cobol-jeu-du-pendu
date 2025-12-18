@@ -38,6 +38,7 @@
           05 WS-USER-INPUT            PIC A.
           05 WS-TESTED                PIC A(26).
           05 WS-COUNT                 PIC 9(2)  VALUE 0.
+          05 WS-COUNT-B               PIC 9(2)  VALUE 0.
        01 WS-GAME-STATUS              PIC A     VALUE 'P'.
           88 PLAYING                            VALUE 'P'.
           88 LOST                               VALUE 'L'.
@@ -80,15 +81,32 @@
            MOVE FUNCTION UPPER-CASE(WS-USER-INPUT) TO WS-USER-INPUT.
            MOVE 0 TO WS-COUNT.
            INSPECT WS-ALPHABET TALLYING WS-COUNT FOR ALL WS-USER-INPUT.
-           PERFORM UNTIL WS-COUNT > 0
-                   DISPLAY WS-USER-INPUT " n'est pas dans l'alphabet !"
-                   DISPLAY "Recommence :"
-                   MOVE " " TO WS-USER-INPUT 
+           IF WS-COUNT = 0
+              DISPLAY WS-USER-INPUT " n'est pas dans l'alphabet"
+           END-IF.
+           MOVE 0 TO WS-COUNT-B.
+           INSPECT WS-TESTED TALLYING WS-COUNT-B FOR ALL WS-USER-INPUT.
+           IF WS-COUNT > 0
+              DISPLAY WS-USER-INPUT " a déjà été testé"
+           END-IF.
+           PERFORM UNTIL WS-COUNT > 0 AND WS-COUNT-B = 0
+                   MOVE " " TO WS-USER-INPUT
+                   DISPLAY "Recommence :" 
                    ACCEPT WS-USER-INPUT
                    MOVE FUNCTION UPPER-CASE(WS-USER-INPUT)
                       TO WS-USER-INPUT
+                   MOVE 0 TO WS-COUNT
                    INSPECT WS-ALPHABET TALLYING WS-COUNT
                       FOR ALL WS-USER-INPUT
+                   IF WS-COUNT = 0
+                      DISPLAY WS-USER-INPUT " n'est pas dans l'alphabet"
+                   END-IF
+                   MOVE 0 TO WS-COUNT-B
+                   INSPECT WS-TESTED TALLYING WS-COUNT-B
+                      FOR ALL WS-USER-INPUT
+                   IF WS-COUNT > 0
+                      DISPLAY WS-USER-INPUT " a déjà été testé"
+                   END-IF
            END-PERFORM.
        CHECK-INPUT.
            INSPECT WS-TESTED
