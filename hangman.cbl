@@ -43,13 +43,13 @@
        MAIN-PROCEDURE.
            PERFORM GENERATE-TARGET-WORD.
            PERFORM UNTIL NOT PLAYING 
+                   DISPLAY "--------------------"
                    DISPLAY "Mot à deviner : " WS-MARKED-WORD
+                   DISPLAY "Tu as " WS-LIVES " vies."
                    DISPLAY "Entre la lettre à tester :"
                    ACCEPT WS-USER-INPUT
                    PERFORM CHECK-INPUT
                    PERFORM CHECK-STATUS
-                   DISPLAY "Tu as " WS-LIVES " vies."
-                   DISPLAY "--------------------"
            END-PERFORM.
            STOP RUN.
        GENERATE-TARGET-WORD.
@@ -94,11 +94,14 @@
            MOVE 0 TO COUNT-CHAR.
            INSPECT WS-MARKED-WORD TALLYING COUNT-CHAR FOR ALL "*".
            IF COUNT-CHAR = 0
-              SET WON TO TRUE 
+              SET WON TO TRUE
+              DISPLAY "--------------------"
               DISPLAY "Bravo ! Tu as deviné le mot " WS-MARKED-WORD
            ELSE
               IF WS-LIVES = 0
-                 SET LOST TO TRUE 
+                 SET LOST TO TRUE
+                 DISPLAY "--------------------"
+                 DISPLAY "Dommage... Le mot était " WS-TARGET-WORD 
               END-IF.
        END PROGRAM JEU-DU-PENDU.
       * TODO : empêcher l'utilisateur de tester une lettre déjà testée
