@@ -1,8 +1,8 @@
 # Description
 
-The hangman game, implemented in Cobol for self-education purpose.
+This is a hangman game implemented in COBOL for self-education purposes.
 
-The game and all words are in French. The dictionary of words that the game can choose is in `words.txt`.
+The game and all the words are in French. The dictionary of words that the game can select is in the file `words.txt`.
 
 # What I learned
 
