@@ -29,12 +29,15 @@
           05 WS-SEED                  PIC 9(4)  VALUE 0.
           05 WS-RAND-ID               PIC 9(2).
        01 WS-MAIN.
+          05 WS-ALPHABET              PIC A(26) VALUE
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
           05 I                        PIC 9(2)  VALUE 1.
           05 WS-TARGET-WORD           PIC A(15).
           05 WS-MARKED-WORD           PIC A(15).
           05 WS-LIVES                 PIC 9     VALUE 6.
           05 WS-USER-INPUT            PIC A.
-          05 COUNT-CHAR               PIC 9(2)  VALUE 0.
+          05 WS-TESTED                PIC A(26).
+          05 WS-COUNT                 PIC 9(2)  VALUE 0.
        01 WS-GAME-STATUS              PIC A     VALUE 'P'.
           88 PLAYING                            VALUE 'P'.
           88 LOST                               VALUE 'L'.
@@ -46,8 +49,10 @@
                    DISPLAY "--------------------"
                    DISPLAY "Mot à deviner : " WS-MARKED-WORD
                    DISPLAY "Tu as " WS-LIVES " vies."
+                   DISPLAY "Lettres déjà testées : " WS-TESTED 
                    DISPLAY "Entre la lettre à tester :"
                    ACCEPT WS-USER-INPUT
+                   PERFORM VALIDATE-INPUT
                    PERFORM CHECK-INPUT
                    PERFORM CHECK-STATUS
            END-PERFORM.
@@ -71,12 +76,27 @@
            MOVE WS-MARKED-WORD TO WS-TARGET-WORD.
            INSPECT WS-MARKED-WORD
               REPLACING CHARACTERS BY "*" BEFORE SPACE.
-       CHECK-INPUT.
+       VALIDATE-INPUT.
            MOVE FUNCTION UPPER-CASE(WS-USER-INPUT) TO WS-USER-INPUT.
-           MOVE 0 TO COUNT-CHAR.
-           INSPECT WS-TARGET-WORD TALLYING COUNT-CHAR
+           MOVE 0 TO WS-COUNT.
+           INSPECT WS-ALPHABET TALLYING WS-COUNT FOR ALL WS-USER-INPUT.
+           PERFORM UNTIL WS-COUNT > 0
+                   DISPLAY WS-USER-INPUT " n'est pas dans l'alphabet !"
+                   DISPLAY "Recommence :"
+                   MOVE " " TO WS-USER-INPUT 
+                   ACCEPT WS-USER-INPUT
+                   MOVE FUNCTION UPPER-CASE(WS-USER-INPUT)
+                      TO WS-USER-INPUT
+                   INSPECT WS-ALPHABET TALLYING WS-COUNT
+                      FOR ALL WS-USER-INPUT
+           END-PERFORM.
+       CHECK-INPUT.
+           INSPECT WS-TESTED
+              REPLACING FIRST SPACE BY WS-USER-INPUT
+           MOVE 0 TO WS-COUNT.
+           INSPECT WS-TARGET-WORD TALLYING WS-COUNT
               FOR ALL WS-USER-INPUT.
-           IF COUNT-CHAR = 0
+           IF WS-COUNT = 0
               DISPLAY WS-USER-INPUT " n'est pas dans le mot."
               SUBTRACT 1 FROM WS-LIVES
            ELSE
@@ -91,9 +111,9 @@
                    ADD 1 TO I
            END-PERFORM.
        CHECK-STATUS.
-           MOVE 0 TO COUNT-CHAR.
-           INSPECT WS-MARKED-WORD TALLYING COUNT-CHAR FOR ALL "*".
-           IF COUNT-CHAR = 0
+           MOVE 0 TO WS-COUNT.
+           INSPECT WS-MARKED-WORD TALLYING WS-COUNT FOR ALL "*".
+           IF WS-COUNT = 0
               SET WON TO TRUE
               DISPLAY "--------------------"
               DISPLAY "Bravo ! Tu as deviné le mot " WS-MARKED-WORD
@@ -104,4 +124,3 @@
               DISPLAY "Dommage... Le mot était " WS-TARGET-WORD 
            END-IF.
        END PROGRAM JEU-DU-PENDU.
-      * TODO : empêcher l'utilisateur de tester une lettre déjà testée

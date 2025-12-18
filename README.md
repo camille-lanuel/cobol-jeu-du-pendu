@@ -12,7 +12,7 @@ The game and all the words are in French. The dictionary of words that the game 
 
 - Work with strings
 
-- Use INSPECT
+- Use the INSPECT statement
 
 # How to use
 
