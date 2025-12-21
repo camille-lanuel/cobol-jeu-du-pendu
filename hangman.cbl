@@ -90,7 +90,7 @@
            END-IF.
            MOVE 0 TO WS-COUNT.
            INSPECT WS-TESTED-LETTERS TALLYING WS-COUNT
-              FOR ALL WS-USER-INPUT.
+              FOR ALL WS-USER-INPUT BEFORE SPACE.
            IF WS-COUNT > 0
               SET INPUT-ALREADY-TESTED TO TRUE
            END-IF.
