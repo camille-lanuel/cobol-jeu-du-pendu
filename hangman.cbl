@@ -95,14 +95,14 @@
               SET INPUT-ALREADY-TESTED TO TRUE
            END-IF.
        GET-USER-INPUT.
-           DISPLAY "Entre la lettre à tester :".
+           DISPLAY "Entre la lettre à tester (a-z) :".
            ACCEPT WS-USER-INPUT.
            PERFORM UPDATE-INPUT-STATUS.
            PERFORM UNTIL INPUT-VALID
                    IF INPUT-NOT-LETTER 
                       DISPLAY "ERREUR : "
                               WS-USER-INPUT
-                              " n'est pas dans l'alphabet."
+                              " n'est pas dans l'alphabet (a-z)."
                    END-IF
                    IF INPUT-ALREADY-TESTED 
                       DISPLAY "ERREUR : "
