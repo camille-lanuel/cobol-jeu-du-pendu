@@ -4,6 +4,8 @@ This is a hangman game implemented in COBOL for self-education purposes.
 
 The game and all the words are in French. The dictionary of words that the game can select is in the file `words.txt`.
 
+![](screenshot.png)
+
 # What I learned
 
 - Read content from an input file
@@ -35,5 +37,3 @@ The game and all the words are in French. The dictionary of words that the game 
    ```bash
    ./hangman
    ```
-
-
