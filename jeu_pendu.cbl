@@ -103,7 +103,6 @@
       *    Calcul indice du mot à deviner dans la table
            COMPUTE W-IDX-MOT-CHOISI =
               FUNCTION RANDOM(W-GRAINE) *(W-IDC-MOT - 1) + 1
-           DISPLAY W-IDX-MOT-CHOISI 
            
       *    Préparation du mot à deviner et du mot masqué
            MOVE W-MOT(W-IDX-MOT-CHOISI) TO W-MOT-MASQUE
