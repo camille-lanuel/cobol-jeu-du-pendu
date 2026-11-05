@@ -27,14 +27,12 @@
           05 W-MOT                 PIC A(15) OCCURS 100 TIMES.
        
        01 W-TIMESTAMP.
-          05 FILLER                PIC 9(8).
-          05 W-TEMPS.
-             10 FILLER             PIC 9(4).
-             10 W-SECONDE          PIC 9(2).
-             10 W-MILLISECONDE     PIC 9(2).
+-         05 FILLER                PIC 9(8).
+-         05 W-TEMPS.
+-            10 FILLER             PIC 9(4).
+-            10 W-SECONDE          PIC 9(4).
           05 FILLER                PIC S9(4).
        
-       01 W-GRAINE                 PIC 9(4)  VALUE 0.
        01 W-IDX-MOT-CHOISI         PIC 9(2).
        
        01 W-IDX-LETTRE             PIC 9(2)  VALUE 1.
@@ -95,14 +93,11 @@
            END-PERFORM
            
            CLOSE LISTE-MOTS
-
-      *    Calcul graine aléatiore à partir du timestamp
-           MOVE FUNCTION CURRENT-DATE TO W-TIMESTAMP
-           COMPUTE W-GRAINE = W-SECONDE * 100 + W-MILLISECONDE
       
       *    Calcul indice du mot à deviner dans la table
+           MOVE FUNCTION CURRENT-DATE TO W-TIMESTAMP
            COMPUTE W-IDX-MOT-CHOISI =
-              FUNCTION RANDOM(W-GRAINE) *(W-IDC-MOT - 1) + 1
+              FUNCTION RANDOM(W-SECONDE) *(W-IDC-MOT - 1) + 1
            
       *    Préparation du mot à deviner et du mot masqué
            MOVE W-MOT(W-IDX-MOT-CHOISI) TO W-MOT-MASQUE
