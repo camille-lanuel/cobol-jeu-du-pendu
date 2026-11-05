@@ -48,12 +48,12 @@
        01 W-STATUT-ENTREE          PIC A     VALUE 'V'.
           88 W-ENTREE-VALIDE                 VALUE 'V'.
           88 W-ENTREE-DEJA-TESTEE            VALUE 'T'.
-          88 W-ENTREE-INVALIDE               VALUE 'L'.
+          88 W-ENTREE-INVALIDE               VALUE 'I'.
        
-       01 W-STATUT-PARTIE          PIC A     VALUE 'P'.
-          88 W-PARTIE-EN-COURS               VALUE 'P'.
-          88 W-PARTIE-PERDUE                 VALUE 'L'.
-          88 W-PARTIE-GAGNEE                 VALUE 'W'.
+       01 W-STATUT-PARTIE          PIC A     VALUE 'C'.
+          88 W-PARTIE-EN-COURS               VALUE 'C'.
+          88 W-PARTIE-PERDUE                 VALUE 'P'.
+          88 W-PARTIE-GAGNEE                 VALUE 'G'.
        
       *----------------------------------------------------------------- 
        PROCEDURE DIVISION.
