@@ -1,150 +1,223 @@
+      *-----------------------------------------------------------------
        IDENTIFICATION DIVISION.
        PROGRAM-ID. JEU-DU-PENDU.
        AUTHOR. CAMILLE.
+      
+      *----------------------------------------------------------------- 
        ENVIRONMENT DIVISION. 
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT WORDS-FILE ASSIGN TO "words.txt"
+           SELECT LISTE-MOTS ASSIGN TO "words.txt"
            ORGANIZATION IS LINE SEQUENTIAL.
+           
+      *-----------------------------------------------------------------
        DATA DIVISION.
        FILE SECTION. 
-       FD  WORDS-FILE.
-       01 FD-WORD-READ                PIC A(15).
+       FD  LISTE-MOTS.
+       01 F-MOT-LU                 PIC A(15).
+      
+      *-----------------------------------------------------------------
        WORKING-STORAGE SECTION.
-       01 WS-WORD-GENERATION.
-          05 WS-DICTIONARY.
-             10 WS-DICT-WORD          PIC A(15) OCCURS 100 TIMES.
-          05 WS-DICT-SIZE             PIC 9(3)  VALUE 0.
-          05 WS-CURRENT-DATE-FIELDS.
-             10 WS-CURRENT-DATE.
-                15 WS-CURRENT-YEAR    PIC  9(4).
-                15 WS-CURRENT-MONTH   PIC  9(2).
-                15 WS-CURRENT-DAY     PIC  9(2).
-             10 WS-CURRENT-TIME.
-                15 WS-CURRENT-HOUR    PIC  9(2).
-                15 WS-CURRENT-MINUTE  PIC  9(2).
-                15 WS-CURRENT-SECOND  PIC  9(2).
-                15 WS-CURRENT-MS      PIC  9(2).
-             10 WS-DIFF-FROM-GMT      PIC S9(4).
-          05 WS-SEED                  PIC 9(4)  VALUE 0.
-          05 WS-RAND-ID               PIC 9(2).
-       01 WS-MAIN.
-          05 I                        PIC 9(2)  VALUE 1.
-          05 WS-ALPHABET              PIC A(26) VALUE
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
-          05 WS-TARGET-WORD           PIC A(15).
-          05 WS-MARKED-WORD           PIC A(15).
-          05 WS-LIVES                 PIC 9     VALUE 6.
-          05 WS-USER-INPUT            PIC A.
-          05 WS-TESTED-LETTERS        PIC A(26).
-          05 WS-COUNT                 PIC 9(2)  VALUE 0.
-          05 WS-COUNT-B               PIC 9(2)  VALUE 0.
-       01 WS-INPUT-STATUS             PIC A     VALUE 'V'.
-          88 INPUT-VALID                        VALUE 'V'.
-          88 INPUT-ALREADY-TESTED               VALUE 'T'.
-          88 INPUT-NOT-LETTER                   VALUE 'L'.
-       01 WS-GAME-STATUS              PIC A     VALUE 'P'.
-          88 GAME-PLAYING                       VALUE 'P'.
-          88 GAME-LOST                          VALUE 'L'.
-          88 GAME-WON                           VALUE 'W'.
+      *----------------------------------------------------------------- 
+       
+       77 C-NBR-MAX-MOTS           PIC 9(3)  VALUE 100.
+       77 C-NBR-MAX-LETTRES        PIC 9(2)  VALUE 15.
+       01 W-IDC-MOT                PIC 9(3)  VALUE 1.
+       01 W-TABLE-MOTS.
+          05 W-MOT                 PIC A(15) OCCURS 100 TIMES.
+       
+       01 W-TIMESTAMP.
+          05 FILLER                PIC 9(8).
+          05 W-TEMPS.
+             10 FILLER             PIC 9(4).
+             10 W-SECONDE          PIC 9(2).
+             10 W-MILLISECONDE     PIC 9(2).
+          05 FILLER                PIC S9(4).
+       
+       01 W-GRAINE                 PIC 9(4)  VALUE 0.
+       01 W-IDX-MOT-CHOISI         PIC 9(2).
+       
+       01 W-IDX-LETTRE             PIC 9(2)  VALUE 1.
+       77 C-ALPHABET               PIC A(26) VALUE
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
+       01 W-MOT-CIBLE              PIC A(15).
+       01 W-MOT-MASQUE             PIC A(15).
+       01 W-NBR-VIES               PIC 9     VALUE 6.
+       01 W-LETTRE-ENTREE          PIC A.
+       01 W-LETTRES-TESTEES        PIC A(26) VALUE SPACES.
+       01 W-COUNT                  PIC 9(2)  VALUE 0.
+       
+       01 W-STATUT-ENTREE          PIC A     VALUE 'V'.
+          88 W-ENTREE-VALIDE                 VALUE 'V'.
+          88 W-ENTREE-DEJA-TESTEE            VALUE 'T'.
+          88 W-ENTREE-INVALIDE               VALUE 'L'.
+       
+       01 W-STATUT-PARTIE          PIC A     VALUE 'P'.
+          88 W-PARTIE-EN-COURS               VALUE 'P'.
+          88 W-PARTIE-PERDUE                 VALUE 'L'.
+          88 W-PARTIE-GAGNEE                 VALUE 'W'.
+       
+      *----------------------------------------------------------------- 
        PROCEDURE DIVISION.
-       MAIN-PROCEDURE.
-           PERFORM GENERATE-TARGET-WORD.
-           PERFORM UNTIL NOT GAME-PLAYING 
+      *-----------------------------------------------------------------
+       
+      *----------------------------------------------------------------- 
+       MAIN-PROCEDURE.  
+
+           PERFORM GENERER-MOT-CIBLE
+           
+           PERFORM UNTIL NOT W-PARTIE-EN-COURS 
                    DISPLAY "--------------------"
-                   DISPLAY "Mot à deviner : " WS-MARKED-WORD
-                   DISPLAY "Tu as " WS-LIVES " vies."
+                   DISPLAY "Mot à deviner : " W-MOT-MASQUE
+                   DISPLAY "Tu as " W-NBR-VIES " vies."
                    DISPLAY "Lettres déjà testées : "
-                           WS-TESTED-LETTERS
-                   PERFORM GET-USER-INPUT
-                   PERFORM HANDLE-INPUT
-                   PERFORM UPDATE-GAME-STATUS
-           END-PERFORM.
-           STOP RUN.
-       GENERATE-TARGET-WORD.
-           OPEN INPUT WORDS-FILE.
-           PERFORM UNTIL WS-DICT-SIZE = 100
-                   READ WORDS-FILE INTO WS-DICT-WORD(WS-DICT-SIZE + 1)
+                           W-LETTRES-TESTEES
+                   PERFORM RECUPERER-ENTREE
+                   PERFORM TRAITER-ENTREE
+                   PERFORM MAJ-STATUT-PARTIE
+           END-PERFORM
+           
+           STOP RUN
+           .
+       
+      *----------------------------------------------------------------- 
+       GENERER-MOT-CIBLE.
+
+           OPEN INPUT LISTE-MOTS
+           
+           PERFORM VARYING W-IDC-MOT FROM 1 BY 1
+              UNTIL W-IDC-MOT > C-NBR-MAX-MOTS 
+                   READ LISTE-MOTS INTO W-MOT(W-IDC-MOT)
                    AT END
                       EXIT PERFORM
-                   NOT AT END
-                       ADD 1 TO WS-DICT-SIZE
                    END-READ
-           END-PERFORM.
-           CLOSE WORDS-FILE.
-           MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE-FIELDS.
-           COMPUTE WS-SEED = WS-CURRENT-SECOND * 100 + WS-CURRENT-MS.
-           COMPUTE WS-RAND-ID =
-              FUNCTION RANDOM(WS-SEED) * WS-DICT-SIZE + 1.
-           MOVE WS-DICT-WORD(WS-RAND-ID) TO WS-MARKED-WORD.
-           MOVE WS-MARKED-WORD TO WS-TARGET-WORD.
-           INSPECT WS-MARKED-WORD
-              REPLACING CHARACTERS BY "*" BEFORE SPACE.
-       UPDATE-INPUT-STATUS.
-           SET INPUT-VALID TO TRUE.
-           MOVE FUNCTION UPPER-CASE(WS-USER-INPUT) TO WS-USER-INPUT.
-           MOVE 0 TO WS-COUNT.
-           INSPECT WS-ALPHABET TALLYING WS-COUNT FOR ALL WS-USER-INPUT.
-           IF WS-COUNT = 0
-              SET INPUT-NOT-LETTER TO TRUE
-           END-IF.
-           MOVE 0 TO WS-COUNT.
-           INSPECT WS-TESTED-LETTERS TALLYING WS-COUNT
-              FOR ALL WS-USER-INPUT BEFORE SPACE.
-           IF WS-COUNT > 0
-              SET INPUT-ALREADY-TESTED TO TRUE
-           END-IF.
-       GET-USER-INPUT.
-           DISPLAY "Entre la lettre à tester (a-z) :".
-           ACCEPT WS-USER-INPUT.
-           PERFORM UPDATE-INPUT-STATUS.
-           PERFORM UNTIL INPUT-VALID
-                   IF INPUT-NOT-LETTER 
+
+           END-PERFORM
+           
+           CLOSE LISTE-MOTS
+
+      *    Calcul graine aléatiore à partir du timestamp
+           MOVE FUNCTION CURRENT-DATE TO W-TIMESTAMP
+           COMPUTE W-GRAINE = W-SECONDE * 100 + W-MILLISECONDE
+      
+      *    Calcul indice du mot à deviner dans la table
+           COMPUTE W-IDX-MOT-CHOISI =
+              FUNCTION RANDOM(W-GRAINE) *(W-IDC-MOT - 1) + 1
+           DISPLAY W-IDX-MOT-CHOISI 
+           
+      *    Préparation du mot à deviner et du mot masqué
+           MOVE W-MOT(W-IDX-MOT-CHOISI) TO W-MOT-MASQUE
+           MOVE W-MOT-MASQUE TO W-MOT-CIBLE
+           INSPECT W-MOT-MASQUE
+              REPLACING CHARACTERS BY "*" BEFORE SPACE
+           .
+      
+      *----------------------------------------------------------------- 
+       RECUPERER-ENTREE.
+       
+           DISPLAY "Entre la lettre à tester (a-z) :"
+           ACCEPT W-LETTRE-ENTREE
+           
+           PERFORM MAJ-STATUT-ENTREE
+           
+           PERFORM UNTIL W-ENTREE-VALIDE
+                   IF W-ENTREE-INVALIDE 
                       DISPLAY "ERREUR : "
-                              WS-USER-INPUT
+                              W-LETTRE-ENTREE
                               " n'est pas dans l'alphabet (a-z)."
                    END-IF
-                   IF INPUT-ALREADY-TESTED 
+                   
+                   IF W-ENTREE-DEJA-TESTEE 
                       DISPLAY "ERREUR : "
-                              WS-USER-INPUT
+                              W-LETTRE-ENTREE
                               " a déjà été testée."
                    END-IF 
-                   MOVE " " TO WS-USER-INPUT
+                   
+                   MOVE SPACE TO W-LETTRE-ENTREE
                    DISPLAY "Recommence :"
-                   ACCEPT WS-USER-INPUT
-                   PERFORM UPDATE-INPUT-STATUS
-           END-PERFORM.
-       HANDLE-INPUT.
-           INSPECT WS-TESTED-LETTERS
-              REPLACING FIRST SPACE BY WS-USER-INPUT
-           MOVE 0 TO WS-COUNT.
-           INSPECT WS-TARGET-WORD TALLYING WS-COUNT
-              FOR ALL WS-USER-INPUT.
-           IF WS-COUNT = 0
-              DISPLAY WS-USER-INPUT " n'est pas dans le mot."
-              SUBTRACT 1 FROM WS-LIVES
+                   ACCEPT W-LETTRE-ENTREE
+                   
+                   PERFORM MAJ-STATUT-ENTREE
+           END-PERFORM
+           .
+
+      *----------------------------------------------------------------- 
+       MAJ-STATUT-ENTREE.
+       
+           SET W-ENTREE-VALIDE TO TRUE
+           MOVE FUNCTION UPPER-CASE(W-LETTRE-ENTREE) TO W-LETTRE-ENTREE
+           
+      *    Vérifie si c'est une lettre de l'alphabet
+           MOVE 0 TO W-COUNT
+           INSPECT C-ALPHABET TALLYING W-COUNT FOR ALL W-LETTRE-ENTREE
+           IF W-COUNT = 0
+              SET W-ENTREE-INVALIDE TO TRUE
+           END-IF
+           
+      *    Vérifie si la lettre a déjà été testée
+           MOVE 0 TO W-COUNT
+           INSPECT W-LETTRES-TESTEES TALLYING W-COUNT
+              FOR ALL W-LETTRE-ENTREE BEFORE SPACE
+           
+           IF W-COUNT > 0
+              SET W-ENTREE-DEJA-TESTEE TO TRUE
+           END-IF
+           .     
+       
+      *----------------------------------------------------------------- 
+       TRAITER-ENTREE.
+       
+      *    Ajout de la lettre à l'ensemble des lettres déjà testées
+           INSPECT W-LETTRES-TESTEES
+              REPLACING FIRST SPACE BY W-LETTRE-ENTREE
+           
+      *    Vérifie si la lettre est dans le mot à deviner
+           MOVE 0 TO W-COUNT
+           INSPECT W-MOT-CIBLE TALLYING W-COUNT
+              FOR ALL W-LETTRE-ENTREE
+           
+           IF W-COUNT = 0
+      *       On retire une vie si la lettre n'y est pas
+              DISPLAY W-LETTRE-ENTREE " n'est pas dans le mot."
+              SUBTRACT 1 FROM W-NBR-VIES
            ELSE
-              PERFORM UNCOVER-GUESS
-           END-IF.
-       UNCOVER-GUESS.
-           MOVE 1 TO I.
-           PERFORM 15 TIMES
-                   IF WS-TARGET-WORD(I:1) = WS-USER-INPUT 
-                      MOVE WS-USER-INPUT TO WS-MARKED-WORD(I:1)
+      *       On découvre les lettres conrrespondantes si elle y est
+              PERFORM DECOUVRIR-LETTRES
+           END-IF
+           .
+           
+      *----------------------------------------------------------------- 
+       DECOUVRIR-LETTRES.
+       
+           PERFORM VARYING W-IDX-LETTRE FROM 1 BY 1
+              UNTIL W-IDX-LETTRE > C-NBR-MAX-LETTRES 
+                   IF W-MOT-CIBLE(W-IDX-LETTRE:1) = W-LETTRE-ENTREE 
+                      MOVE W-LETTRE-ENTREE
+                         TO W-MOT-MASQUE(W-IDX-LETTRE:1)
                    END-IF
-                   ADD 1 TO I
-           END-PERFORM.
-       UPDATE-GAME-STATUS.
-           MOVE 0 TO WS-COUNT.
-           INSPECT WS-MARKED-WORD TALLYING WS-COUNT FOR ALL "*".
-           IF WS-COUNT = 0
-              SET GAME-WON TO TRUE
+           END-PERFORM
+           .
+       
+      *----------------------------------------------------------------- 
+       MAJ-STATUT-PARTIE.
+       
+           MOVE 0 TO W-COUNT
+           INSPECT W-MOT-MASQUE TALLYING W-COUNT FOR ALL "*"
+           
+      *    Si plus aucune lettre masquée, la partie est gagnée
+           IF W-COUNT = 0
+              SET W-PARTIE-GAGNEE TO TRUE
               DISPLAY "--------------------"
-              DISPLAY "Bravo ! Tu as deviné le mot " WS-MARKED-WORD
-           END-IF.
-           IF WS-LIVES = 0
-              SET GAME-LOST TO TRUE
+              DISPLAY "Bravo ! Tu as deviné le mot " W-MOT-MASQUE
+           END-IF
+           
+      *    Si plus aucune vie, la partie est perdue
+           IF W-NBR-VIES = 0
+              SET W-PARTIE-PERDUE TO TRUE
               DISPLAY "--------------------"
-              DISPLAY "Dommage... Le mot était " WS-TARGET-WORD 
-           END-IF.
+              DISPLAY "Dommage... Le mot était " W-MOT-CIBLE 
+           END-IF
+           .
+       
+      *----------------------------------------------------------------- 
        END PROGRAM JEU-DU-PENDU.
